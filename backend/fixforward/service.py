@@ -10,38 +10,16 @@ from .db import connect, row_to_dict
 
 GUIDES: dict[str, dict[str, Any]] = {
     "washing_machine": {
-        "title": "Washer vibration and unusual-noise checklist",
-        "matches": ["noise", "noisy", "vibration", "shake", "shaking", "rattle", "spin"],
+        "title": "WashPro 8kg vibration and unusual-noise checklist",
+        "matches": ["noise", "noisy", "vibration", "shake", "shaking", "rattle", "spin", "drum", "not draining", "water left", "door", "won't start", "not starting"],
         "steps": [
-            "Pause the cycle if the machine is shaking heavily or making a harsh grinding sound.",
-            "Check that the load is balanced and that the machine is standing level.",
-            "Check the drum for loose items such as coins, only when the machine is stopped.",
-            "If the noise continues, stop using the machine and arrange a technician inspection.",
+            "If the machine is shaking heavily, smells burnt, leaks near a power connection, or makes a harsh grinding sound, stop the cycle and do not keep testing it.",
+            "For vibration during spinning, pause the cycle and check whether the laundry load is bunched to one side. Redistribute the load only after the drum has stopped.",
+            "Check from the outside that the machine is standing level and is not touching a wall or cabinet. Do not pull a heavy machine out alone.",
+            "When the machine is stopped, check only user-accessible areas for obvious loose items or a kinked visible hose; follow the manufacturer's manual.",
+            "If the symptom persists, or there is burning, smoke, leaking near electrics, or a harsh grinding sound, stop using the machine and arrange a qualified technician inspection.",
         ],
-        "safety_note": "Do not remove panels or reach into the drum while the machine is powered. Unplug it before any external inspection.",
-    },
-    "refrigerator": {
-        "title": "Refrigerator not-cooling checklist",
-        "matches": ["warm", "hot", "not cold", "not cooling", "temperature", "food", "leak"],
-        "steps": [
-            "Confirm that the temperature control has not been changed accidentally.",
-            "Check that the door closes fully and that the door seal is not visibly obstructed.",
-            "Make sure ventilation space around the appliance is not blocked.",
-            "Move perishable food to a safe alternative if the refrigerator is no longer keeping it cold.",
-            "Arrange a technician if cooling does not recover or there are electrical warning signs.",
-        ],
-        "safety_note": "Do not open electrical or sealed refrigeration components. If you smell burning or see damaged wiring, disconnect power if safe and seek qualified help.",
-    },
-    "dishwasher": {
-        "title": "Dishwasher drainage checklist",
-        "matches": ["drain", "water", "standing", "leak", "smell", "not empty", "pool"],
-        "steps": [
-            "Stop the cycle if water is leaking onto the floor.",
-            "Check the user-accessible filter only as described in the appliance manual.",
-            "Look for a visibly kinked drain hose without pulling the appliance out.",
-            "If water remains or a leak recurs, stop using the unit and request a technician.",
-        ],
-        "safety_note": "Switch off the appliance before checking user-accessible parts. Do not remove fixed panels or work on wiring.",
+        "safety_note": "Do not remove panels, reach into a moving drum, or work on wiring. Disconnect power before any permitted external inspection. For smoke, burning smells, damaged wiring, or significant leaks, stop using the appliance and seek qualified assistance.",
     },
 }
 
@@ -57,7 +35,7 @@ def _warranty_status(expiry: str) -> str:
 
 def list_appliances() -> list[dict[str, Any]]:
     with connect() as conn:
-        rows = conn.execute("SELECT * FROM appliances ORDER BY appliance_id").fetchall()
+        rows = conn.execute("SELECT * FROM appliances WHERE appliance_id = 'APL-1001' AND appliance_type = 'washing_machine' ORDER BY appliance_id").fetchall()
     result = []
     for row in rows:
         item = dict(row)
@@ -68,10 +46,10 @@ def list_appliances() -> list[dict[str, Any]]:
 
 def get_appliance_details(appliance_id: str) -> dict[str, Any]:
     with connect() as conn:
-        row = conn.execute("SELECT * FROM appliances WHERE appliance_id = ?", (appliance_id,)).fetchone()
+        row = conn.execute("SELECT * FROM appliances WHERE appliance_id = ? AND appliance_id = 'APL-1001' AND appliance_type = 'washing_machine'", (appliance_id,)).fetchone()
     appliance = row_to_dict(row)
     if not appliance:
-        return {"ok": False, "error": f"No appliance found with ID {appliance_id!r}.", "available_ids": [x["appliance_id"] for x in list_appliances()]}
+        return {"ok": False, "error": f"No appliance found with ID {appliance_id!r}.", "available_ids": ["APL-1001"], "supported_appliance": "WhirlNest WashPro 8kg washing machine"}
     appliance["warranty_status"] = _warranty_status(appliance["warranty_expiry"])
     return {"ok": True, "appliance": appliance}
 

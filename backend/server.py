@@ -32,8 +32,8 @@ mcp = MCPServer(
     title="FixForward AI Repair Coordinator",
     description="A stateful demo workflow for safe appliance troubleshooting and repair coordination.",
     instructions=(
-        "You are the tool server for FixForward AI, a demo appliance-repair coordinator. "
-        "Use tools to inspect saved appliance data, retrieve safe first-line troubleshooting steps, "
+        "You are the tool server for FixForward AI, a demo washing-machine repair coordinator. "
+        "Use tools to inspect saved WashPro 8kg data, retrieve safe first-line troubleshooting steps, "
         "create persistent repair cases, and find appointment slots. Never claim that an appointment "
         "is booked unless the booking tool returns status=scheduled. Before booking or rescheduling, "
         "show the user the exact slot and technician and obtain explicit approval. A booking tool call "
@@ -48,13 +48,13 @@ mcp = MCPServer(
 # ---- MCP tools: these are the actual tools a compatible agent can discover and call. ----
 @mcp.tool()
 def list_registered_appliances() -> list[dict[str, Any]]:
-    """List appliances registered in the FixForward demo account, including warranty status."""
+    """List the single supported demo appliance (WhirlNest WashPro 8kg), including its warranty status."""
     return list_appliances()
 
 
 @mcp.tool()
 def get_appliance(appliance_id: str) -> dict[str, Any]:
-    """Get the saved model, type, location label, and warranty status for an appliance ID such as APL-1001."""
+    """Get saved model, location, and warranty status for the supported WashPro 8kg appliance ID APL-1001."""
     return get_appliance_details(appliance_id)
 
 

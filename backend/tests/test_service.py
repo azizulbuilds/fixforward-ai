@@ -4,12 +4,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fixforward.db import init_db
+from fixforward.db import connect, init_db
 from fixforward.service import (
     book_repair_appointment,
     create_repair_case,
     get_available_appointment_slots,
+    get_appliance_details,
     get_repair_case,
+    list_appliances,
     reschedule_repair_appointment,
     simulate_technician_cancellation,
 )
@@ -24,6 +26,30 @@ class FixForwardServiceTests(unittest.TestCase):
     def tearDown(self):
         self._tempdir.cleanup()
         os.environ.pop("FIXFORWARD_DB_PATH", None)
+
+    def test_demo_supports_only_washpro_washing_machine(self):
+        appliances = list_appliances()
+        self.assertEqual(len(appliances), 1)
+        self.assertEqual(appliances[0]["appliance_id"], "APL-1001")
+        self.assertEqual(appliances[0]["model"], "WashPro 8kg")
+        self.assertEqual(appliances[0]["appliance_type"], "washing_machine")
+        unsupported = get_appliance_details("APL-1002")
+        self.assertFalse(unsupported["ok"])
+        self.assertEqual(unsupported["available_ids"], ["APL-1001"])
+
+    def test_startup_migration_removes_old_appliance_records(self):
+        with connect() as conn:
+            conn.execute(
+                """INSERT INTO appliances
+                   (appliance_id, brand, model, appliance_type, purchase_date,
+                    warranty_expiry, location_label)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                ("APL-1002", "CoolHaven", "FrostGuard 350", "refrigerator", "2024-01-01", "2025-01-01", "Kitchen"),
+            )
+        init_db()
+        with connect() as conn:
+            appliance_rows = conn.execute("SELECT appliance_id, appliance_type FROM appliances").fetchall()
+        self.assertEqual([(row["appliance_id"], row["appliance_type"]) for row in appliance_rows], [("APL-1001", "washing_machine")])
 
     def test_case_creation_persists(self):
         created = create_repair_case("APL-1001", "Washer shakes loudly during spin")

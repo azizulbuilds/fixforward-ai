@@ -1,4 +1,4 @@
-"""SQLite storage and seed data for FixForward AI's demo backend."""
+"""SQLite storage and single-washing-machine seed data for FixForward AI."""
 from __future__ import annotations
 
 import os
@@ -6,6 +6,9 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+
+DEMO_APPLIANCE_ID = "APL-1001"
 
 
 def _db_path() -> Path:
@@ -30,7 +33,12 @@ def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
 
 
 def init_db() -> None:
-    """Create tables and insert repeatable demo records when the DB is empty."""
+    """Create tables and ensure the demo account contains only WashPro 8kg.
+
+    The pruning below is intentional: earlier demo versions seeded a refrigerator
+    and dishwasher. Existing local databases are migrated to this project's
+    focused, single-appliance scope on startup.
+    """
     with connect() as conn:
         conn.executescript(
             """
@@ -74,22 +82,42 @@ def init_db() -> None:
             """
         )
 
-        if conn.execute("SELECT COUNT(*) FROM appliances").fetchone()[0] == 0:
-            today = datetime.now().date()
-            appliances = [
-                ("APL-1001", "WhirlNest", "WashPro 8kg", "washing_machine",
-                 (today - timedelta(days=300)).isoformat(), (today + timedelta(days=65)).isoformat(), "Home · Utility area"),
-                ("APL-1002", "CoolHaven", "FrostGuard 350", "refrigerator",
-                 (today - timedelta(days=950)).isoformat(), (today - timedelta(days=220)).isoformat(), "Home · Kitchen"),
-                ("APL-1003", "SparkHome", "CleanWave D12", "dishwasher",
-                 (today - timedelta(days=140)).isoformat(), (today + timedelta(days=225)).isoformat(), "Home · Kitchen"),
-            ]
-            conn.executemany(
-                """INSERT INTO appliances
-                   (appliance_id, brand, model, appliance_type, purchase_date,
-                    warranty_expiry, location_label) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                appliances,
-            )
+        # Release appointments that were attached to out-of-scope appliances,
+        # then remove those old demo cases and appliance records.
+        conn.execute(
+            """UPDATE appointment_slots
+               SET status = 'available'
+               WHERE status = 'booked'
+                 AND slot_id IN (
+                   SELECT c.current_slot_id
+                   FROM repair_cases c
+                   JOIN appliances a ON a.appliance_id = c.appliance_id
+                   WHERE c.appliance_id != ? AND c.current_slot_id IS NOT NULL
+                 )""",
+            (DEMO_APPLIANCE_ID,),
+        )
+        conn.execute("DELETE FROM repair_cases WHERE appliance_id != ?", (DEMO_APPLIANCE_ID,))
+        conn.execute("DELETE FROM appliances WHERE appliance_id != ?", (DEMO_APPLIANCE_ID,))
+
+        today = datetime.now().date()
+        conn.execute(
+            """INSERT OR IGNORE INTO appliances
+               (appliance_id, brand, model, appliance_type, purchase_date,
+                warranty_expiry, location_label)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (
+                DEMO_APPLIANCE_ID,
+                "WhirlNest",
+                "WashPro 8kg",
+                "washing_machine",
+                (today - timedelta(days=300)).isoformat(),
+                (today + timedelta(days=65)).isoformat(),
+                "Home · Utility area",
+            ),
+        )
+
+        # All seeded slots now refer to the single washing-machine service flow.
+        conn.execute("UPDATE appointment_slots SET service_type = 'washing_machine_repair' WHERE service_type != 'washing_machine_repair'")
 
         if conn.execute("SELECT COUNT(*) FROM appointment_slots").fetchone()[0] == 0:
             now = datetime.now().astimezone().replace(second=0, microsecond=0)
@@ -99,7 +127,7 @@ def init_db() -> None:
                 start = (now + timedelta(days=offset)).replace(hour=hours, minute=0)
                 end = start + timedelta(minutes=90)
                 technician = ["Maya R.", "Arjun K.", "Riya S.", "Kabir P."][slot_no % 4]
-                slots.append((f"SLOT-{slot_no:03d}", "appliance_repair", start.isoformat(), end.isoformat(), technician, "available"))
+                slots.append((f"SLOT-{slot_no:03d}", "washing_machine_repair", start.isoformat(), end.isoformat(), technician, "available"))
                 slot_no += 1
             conn.executemany(
                 """INSERT INTO appointment_slots
