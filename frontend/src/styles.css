@@ -280,6 +280,15 @@ h1, h2, h3, p { margin-top: 0; }
 .message-stamp { display: block; color: #a1a4af; font: 7.5px var(--mono); letter-spacing: .75px; margin: 2px 0 5px; }
 .message-body p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 10px 11px; color: #687185; background: #f4f4f0; border: 1px solid #efeee8; border-radius: 3px 10px 10px 10px; font-size: 10px; line-height: 1.65; }
 .chat-message.user .message-body p { display: inline-block; text-align: left; background: #eceeff; border-color: #e3e6ff; color: #45518a; border-radius: 10px 3px 10px 10px; }
+
+.tool-event-list { display: grid; gap: 5px; margin-top: 7px; padding: 8px 9px; border: 1px solid #e6e7f2; border-radius: 7px; background: #fbfbff; }
+.tool-event { display: grid; grid-template-columns: 6px minmax(0, auto); gap: 3px 7px; align-items: center; color: #75809a; }
+.tool-event-dot { width: 5px; height: 5px; border-radius: 50%; background: #55a980; grid-row: span 2; }
+.tool-event-name { font: 7.5px var(--mono); color: #5664b9; overflow-wrap: anywhere; }
+.tool-event-summary { grid-column: 2; font-size: 8px; line-height: 1.35; color: #9a9eac; }
+.tool-event-error .tool-event-dot { background: #d97861; }
+.tool-event-error .tool-event-name { color: #bd6c59; }
+
 .typing-indicator { display: flex; align-items: center; gap: 4px; margin-left: 31px; color: #a4a8b3; }
 .typing-indicator > span { width: 4px; height: 4px; border-radius: 50%; background: #8791dc; animation: typePulse 1s ease-in-out infinite; }
 .typing-indicator > span:nth-child(2) { animation-delay: .15s; }
@@ -585,3 +594,291 @@ h1, h2, h3, p { margin-top: 0; }
   .appliance-modal-row .warranty-tag { margin-left: 47px; }
   .toast { right: 10px; bottom: 10px; }
 }
+
+/* Extended workspace features: appointment audit trail, case details and preferences */
+.active-appointment-panel,
+.appointment-history-panel,
+.case-detail-panel {
+  border: 1px solid #e5e2da;
+  border-radius: 14px;
+  background: #fffefa;
+  padding: 20px;
+  margin: 0 0 22px;
+  box-shadow: var(--shadow-soft);
+}
+.panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+.panel-heading h2 { font: 800 20px/1.2 var(--sans-heading); letter-spacing: -.5px; color: var(--ink); margin: 6px 0 0; }
+.active-appointment-panel > p,
+.appointment-history-panel > p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.saved-appointment { display: flex; gap: 15px; align-items: center; padding-top: 9px; border-top: 1px solid var(--line); }
+.saved-appointment > div:nth-child(2) { flex: 1; min-width: 0; }
+.saved-appointment h3 { margin: 0 0 5px; color: var(--ink); font: 700 14px var(--sans-heading); }
+.saved-appointment p { margin: 0 0 7px; color: var(--muted); font-size: 11px; }
+.appointment-tech-line { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); font-size: 10px; overflow-wrap: anywhere; }
+.reschedule-banner, .no-appointment-row { display: flex; align-items: center; gap: 13px; padding: 14px; border-radius: 10px; background: #fff2ec; color: #a85b45; }
+.reschedule-banner > div { flex: 1; min-width: 0; }
+.reschedule-banner strong { font-size: 12px; }
+.reschedule-banner p { color: #986e62; font-size: 10px; line-height: 1.6; margin: 5px 0 0; }
+.no-appointment-row { justify-content: space-between; background: #f0f1ff; color: var(--ink-soft); flex-wrap: wrap; font-size: 11px; }
+.appointments-section-heading { margin: 25px 0 14px; }
+.appointments-section-heading h2 { font: 750 22px var(--sans-heading); letter-spacing: -.7px; margin: 5px 0 0; }
+.appointment-history-panel { margin-top: 28px; }
+.history-list { display: grid; }
+.history-event { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 11px; padding: 14px 0; border-top: 1px solid #efede7; }
+.history-event-icon { width: 32px; height: 32px; border-radius: 10px; background: #e7f3e7; color: #407e57; display: grid; place-items: center; }
+.history-event-icon.history-warning { background: #fff0e8; color: #bf6c50; }
+.history-event-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.history-event-title strong { color: var(--ink); font-size: 12px; text-transform: capitalize; }
+.history-event-title span { color: #9a9eaa; font: 9px var(--mono); text-align: right; }
+.history-event p { margin: 5px 0; font-size: 10px; line-height: 1.6; color: var(--ink-soft); overflow-wrap: anywhere; }
+.history-event small { display: block; margin-top: 4px; color: #8d92a0; font-size: 9px; line-height: 1.5; overflow-wrap: anywhere; }
+.history-note { display: flex; align-items: flex-start; gap: 8px; padding: 10px 11px; margin-top: 10px; border: 1px solid #e2e5fb; border-radius: 8px; background: #f5f6ff; color: #6670a6; font-size: 10px; line-height: 1.6; }
+.history-note svg { flex: 0 0 auto; }
+.history-disclaimer { margin-top: 14px; padding-top: 12px; border-top: 1px solid #efede7; color: #a1a3ac; font-size: 9px; }
+.case-detail-panel { margin-top: 18px; }
+.case-detail-issue { color: var(--ink-soft); line-height: 1.65; font-size: 12px; padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+.case-detail-grid, .appliance-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; margin: 15px 0; }
+.case-detail-grid > div, .appliance-detail-grid > div { display: grid; gap: 5px; min-width: 0; }
+.case-detail-grid small, .appliance-detail-grid small { color: #999eaa; font-size: 9px; }
+.case-detail-grid strong, .appliance-detail-grid strong { color: var(--ink); font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.case-timeline { margin-top: 18px; }
+.case-timeline h3 { font: 750 14px var(--sans-heading); margin: 0 0 13px; }
+.case-timeline-row { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 9px; padding-bottom: 14px; }
+.timeline-dot { width: 8px; height: 8px; margin: 4px 0 0 2px; border-radius: 50%; background: #55a174; box-shadow: 0 0 0 3px #e3f2e5; }
+.timeline-dot.warning { background: #d7795e; box-shadow: 0 0 0 3px #fff0e8; }
+.timeline-dot.pending { background: #8791db; box-shadow: 0 0 0 3px #eeefff; }
+.case-timeline-row strong { font-size: 10px; color: var(--ink); }
+.case-timeline-row p { margin: 4px 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.case-timeline-row small { color: #a4a6ae; font-size: 9px; }
+.case-detail-actions, .appliance-modal-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding-top: 13px; border-top: 1px solid var(--line); }
+.symptom-card { min-height: 200px; }
+.symptom-card p { min-height: 35px; }
+.appliance-detail-grid { background: #f8f7f2; border: 1px solid #efede7; border-radius: 10px; padding: 14px; margin-top: 16px; }
+.warranty-result { display: grid; gap: 5px; padding: 12px; background: #f0f6ec; border: 1px solid #deecd6; border-radius: 9px; margin-top: 12px; color: #457455; font-size: 10px; }
+.warranty-result strong { font-size: 11px; }
+.warranty-result small { line-height: 1.5; color: #78927a; }
+.profile-settings-form { display: grid; gap: 13px; }
+.profile-settings-form > label:not(.preference-toggle) { display: grid; gap: 6px; color: var(--ink-soft); font-size: 11px; font-weight: 700; }
+.profile-settings-form input:not([type="checkbox"]) { width: 100%; min-height: 40px; border: 1px solid #e4e2dc; border-radius: 8px; padding: 9px 11px; color: var(--ink); background: #fff; }
+.preference-toggle { display: flex; align-items: center; justify-content: space-between; gap: 13px; padding: 12px 0; border-top: 1px solid #efede7; }
+.preference-toggle span { display: grid; gap: 4px; }
+.preference-toggle strong { font-size: 11px; color: var(--ink); }
+.preference-toggle small { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.preference-toggle input { width: 17px; height: 17px; accent-color: var(--blue); }
+.notification-list { display: grid; gap: 12px; margin-bottom: 18px; }
+.notification-item { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 11px; padding: 12px; background: #f8f7f2; border: 1px solid #efede7; border-radius: 10px; }
+.notification-item-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; background: #e9ecff; color: var(--blue); }
+.notification-item strong { color: var(--ink); font-size: 11px; }
+.notification-item p { color: var(--muted); font-size: 10px; line-height: 1.6; margin: 5px 0 0; }
+.notification-item small { display: block; color: #7f8797; font-size: 9px; margin-top: 6px; line-height: 1.5; }
+.full-button { width: 100%; justify-content: center; }
+@media (max-width: 720px) {
+  .saved-appointment { align-items: flex-start; flex-wrap: wrap; }
+  .saved-appointment > .text-action { margin-left: 49px; }
+  .reschedule-banner { align-items: flex-start; flex-wrap: wrap; }
+  .reschedule-banner > .primary-button { margin-left: 32px; }
+  .history-event-title { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .case-detail-grid, .appliance-detail-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Interactive handbook guide results */
+.symptom-card-active { border-color: #93b6a5 !important; box-shadow: 0 0 0 2px rgba(112, 163, 142, .12), var(--shadow-soft); }
+.symptom-card .text-action:disabled { opacity: .58; cursor: wait; }
+.handbook-result-panel { background: #fffefa; border: 1px solid #e4e2da; border-radius: 16px; padding: 22px; margin: 22px 0; box-shadow: var(--shadow-soft); }
+.handbook-result-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; }
+.handbook-result-heading h2 { color: var(--ink); font: 800 22px/1.3 var(--sans-heading); letter-spacing: -.6px; margin: 7px 0 0; }
+.handbook-loading-copy, .handbook-assessment { color: var(--muted); font-size: 12px; line-height: 1.7; margin: 13px 0; }
+.handbook-steps { list-style: none; display: grid; gap: 0; padding: 0; margin: 15px 0 19px; counter-reset: guide; }
+.handbook-steps li { display: grid; grid-template-columns: 35px minmax(0, 1fr); gap: 12px; padding: 13px 0; border-top: 1px solid #efede7; }
+.handbook-steps li > span { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 9px; background: #edf4ec; color: #477e5b; font: 700 10px var(--mono); }
+.handbook-steps li p { color: var(--ink-soft); font-size: 12px; line-height: 1.75; margin: 1px 0 0; }
+.handbook-safety-note { display: flex; align-items: flex-start; gap: 11px; border: 1px solid #f0d7cb; background: #fff5ef; border-radius: 11px; padding: 14px; color: #a65e47; }
+.handbook-safety-note > svg { flex: 0 0 auto; margin-top: 1px; }
+.handbook-safety-note strong { display: block; font-size: 11px; }
+.handbook-safety-note p { margin: 5px 0 0; color: #875f51; font-size: 11px; line-height: 1.7; }
+.handbook-result-actions { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 16px; }
+@media (max-width: 720px) { .handbook-result-panel { padding: 16px; } .handbook-result-heading h2 { font-size: 19px; } .handbook-result-actions > button { width: 100%; justify-content: center; } }
+
+
+/* Persistent repair-case lifecycle and linked appointment audit trail */
+.persistent-case-activity, .case-linked-history {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #e8e5de;
+  border-radius: 12px;
+  background: #fcfbf7;
+}
+.activity-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.activity-panel-heading h3 { margin: 5px 0 0; color: var(--ink); font: 750 15px/1.3 var(--sans-heading); letter-spacing: -.3px; }
+.activity-empty-note { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.65; }
+.saved-activity-list { display: grid; }
+.saved-activity-row { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 10px; padding: 12px 0; border-top: 1px solid #efede7; }
+.saved-activity-row > .timeline-dot { margin-top: 5px; }
+.saved-activity-row p { margin: 5px 0; color: var(--ink-soft); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.saved-activity-row small { display: block; color: #8e94a0; font-size: 9px; line-height: 1.5; margin-top: 4px; overflow-wrap: anywhere; }
+.saved-activity-title { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.saved-activity-title strong { color: var(--ink); font-size: 10px; text-transform: capitalize; }
+.saved-activity-title small { text-align: right; flex: 0 0 auto; margin: 0; }
+.case-action-hint { color: #9a796c; font-size: 9px; line-height: 1.5; }
+.case-closed-note { display: inline-flex; align-items: center; gap: 6px; color: #4f8861; font-size: 10px; }
+@media (max-width: 720px) {
+  .persistent-case-activity, .case-linked-history { padding: 12px; }
+  .activity-panel-heading { align-items: flex-start; }
+  .activity-panel-heading .secondary-button { padding: 8px 9px; font-size: 10px; }
+  .saved-activity-title { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .saved-activity-title small { text-align: left; }
+  .case-detail-actions { align-items: stretch; }
+  .case-detail-actions > button { justify-content: center; }
+}
+
+
+/* Appointment planner controls: date-specific availability and case selection */
+.appointment-planner-tools {
+  display: grid;
+  grid-template-columns: minmax(210px, .85fr) minmax(290px, 1.15fr);
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid #e5e2da;
+  border-radius: 13px;
+  background: #fcfbf7;
+}
+.appointment-case-select,
+.appointment-date-filter { display: grid; gap: 7px; min-width: 0; }
+.appointment-case-select label,
+.appointment-date-filter label { color: var(--ink-soft); font-size: 10px; font-weight: 800; }
+.appointment-case-select select,
+.appointment-date-filter input {
+  width: 100%; min-width: 0; min-height: 39px; padding: 8px 10px;
+  border: 1px solid #e2dfd6; border-radius: 8px; background: #fffefa;
+  color: var(--ink); font: 11px var(--sans-body, sans-serif);
+}
+.appointment-date-filter-controls { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.appointment-date-filter-controls input { flex: 1 1 150px; }
+.appointment-date-filter-controls .primary-button { min-height: 39px; padding: 9px 12px; white-space: nowrap; }
+.date-clear-button { min-height: 39px; padding: 8px 10px; border: 1px solid #e2dfd6; border-radius: 8px; background: #fffefa; color: var(--ink-soft); font-size: 10px; font-weight: 750; }
+.date-clear-button:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 720px) {
+  .appointment-planner-tools { grid-template-columns: 1fr; padding: 12px; }
+  .appointment-date-filter-controls { flex-wrap: wrap; }
+  .appointment-date-filter-controls input { flex-basis: 100%; }
+  .appointment-date-filter-controls .primary-button,
+  .appointment-date-filter-controls .date-clear-button { flex: 1; justify-content: center; }
+}
+
+
+/* Appliance & Warranty Management section */
+.warranty-tag.soon { color: #9b6e24; background: #fff2d8; }
+.warranty-tag.unknown { color: #777d8e; background: #eeeff3; }
+.appliance-management-page { padding-bottom: 20px; }
+.appliance-management-grid { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr); gap: 18px; align-items: stretch; }
+.appliance-record-card, .warranty-advice-card { min-width: 0; border: 1px solid #e7e4dc; border-radius: 15px; background: #fffefa; box-shadow: var(--shadow-soft); }
+.appliance-record-card { padding: 19px; }
+.appliance-record-top { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.appliance-record-top > .eyebrow { flex: 1 1 130px; }
+.appliance-record-art { display: grid; place-items: center; min-height: 158px; margin: 9px 0 2px; border-radius: 12px; background: #f8f7f1; }
+.appliance-record-art .appliance-art { max-height: 145px; width: auto; }
+.appliance-record-card > h2 { font: 800 21px/1.25 var(--sans-heading); letter-spacing: -.6px; color: var(--ink); margin: 10px 0 5px; }
+.appliance-record-card > p { margin: 0; font-size: 10px; color: var(--muted); }
+.appliance-management-details { margin-bottom: 0; }
+.appliance-record-actions { display: flex; flex-wrap: wrap; gap: 9px; padding-top: 15px; margin-top: 15px; border-top: 1px solid var(--line); }
+.appliance-record-actions > button { flex: 1 1 auto; justify-content: center; }
+.warranty-advice-card { padding: 21px; }
+.warranty-advice-active { background: #fbfdf8; border-color: #dce9d5; }
+.warranty-advice-soon { background: #fffaf0; border-color: #efdfb9; }
+.warranty-advice-expired { background: #fffaf7; border-color: #eed9ce; }
+.warranty-advice-unknown { background: #fbfbfd; border-color: #e0e2ea; }
+.warranty-advice-kicker { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; }
+.warranty-advice-kicker > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; color: #5b865b; background: #e6f0df; flex: 0 0 auto; }
+.warranty-advice-soon .warranty-advice-kicker > span { color: #9b6e24; background: #fff0ce; }
+.warranty-advice-expired .warranty-advice-kicker > span { color: #a16c55; background: #fae8df; }
+.warranty-advice-unknown .warranty-advice-kicker > span { color: #737b91; background: #eeeff5; }
+.warranty-advice-kicker > div { display: grid; gap: 5px; min-width: 0; }
+.warranty-advice-kicker small { color: #8a91a0; font-size: 9px; line-height: 1.4; overflow-wrap: anywhere; }
+.warranty-advice-card h2 { margin: 0 0 9px; color: var(--ink); font: 800 clamp(20px, 2.4vw, 28px)/1.17 var(--sans-heading); letter-spacing: -.9px; }
+.warranty-advice-card h3 { margin: 0 0 8px; color: var(--ink); font: 800 17px/1.25 var(--sans-heading); letter-spacing: -.4px; }
+.warranty-advice-card > p { margin: 0; color: #737b8d; font-size: 11px; line-height: 1.75; }
+.warranty-checklist { display: grid; gap: 12px; margin-top: 21px; padding: 15px; border-radius: 11px; border: 1px solid rgba(132, 143, 130, .17); background: rgba(255, 255, 255, .7); }
+.warranty-checklist > strong { margin-bottom: 1px; font-size: 11px; color: var(--ink); }
+.warranty-checklist > div { display: flex; align-items: flex-start; gap: 8px; color: #70798b; font-size: 10px; line-height: 1.55; }
+.warranty-checklist svg { flex: 0 0 auto; color: #69966c; margin-top: 1px; }
+.warranty-advice-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 17px; }
+.warranty-advice-actions .text-action { min-height: 37px; }
+.warranty-demo-disclaimer { display: flex; align-items: flex-start; gap: 7px; margin-top: 18px; padding-top: 13px; border-top: 1px solid rgba(130, 135, 145, .16); color: #9a9eaa; font-size: 9px; line-height: 1.6; }
+.warranty-demo-disclaimer svg { flex: 0 0 auto; margin-top: 1px; }
+.warranty-advice-modal { box-shadow: none; margin-top: 15px; padding: 15px; }
+.warranty-advice-modal .warranty-advice-kicker { margin-bottom: 12px; }
+.warranty-advice-modal .warranty-advice-kicker > span { width: 32px; height: 32px; }
+.warranty-advice-modal .warranty-advice-kicker .eyebrow { font-size: 8px; }
+.warranty-advice-modal .warranty-advice-kicker small { font-size: 9px; }
+.warranty-advice-modal > p { font-size: 10px; }
+.warranty-next-steps { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 20px; padding: 20px; border: 1px solid #e7e4dc; border-radius: 14px; background: #f7f6f0; }
+.warranty-next-steps h2 { margin: 8px 0 6px; font: 800 20px/1.25 var(--sans-heading); letter-spacing: -.5px; color: var(--ink); }
+.warranty-next-steps p { max-width: 550px; margin: 0; color: #848b99; font-size: 10px; line-height: 1.65; }
+.warranty-next-step-actions { display: flex; flex-wrap: wrap; gap: 8px; flex: 0 0 auto; }
+@media (max-width: 880px) {
+  .appliance-management-grid { grid-template-columns: minmax(0, 1fr); }
+  .appliance-record-card { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .warranty-next-steps { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 540px) {
+  .appliance-record-card, .warranty-advice-card { padding: 15px; }
+  .appliance-record-actions > button, .warranty-advice-actions > button, .warranty-next-step-actions > button { width: 100%; justify-content: center; }
+  .warranty-next-steps { padding: 15px; }
+  .warranty-advice-card h2 { font-size: 22px; }
+}
+
+/* Notifications & UX: actionable local notifications, read/unread states, and responsive controls. */
+.notification-button > .notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: auto;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 1px solid #fffefa;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--coral);
+  color: #fff;
+  font: 700 9px var(--mono);
+  line-height: 1;
+}
+.notification-modal-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.notification-modal-toolbar > div { display: grid; gap: 4px; }
+.notification-modal-toolbar strong { color: var(--ink); font: 700 12px var(--sans-heading); }
+.notification-modal-toolbar span { color: var(--muted); font-size: 9px; }
+.notification-modal-toolbar .text-action { font-size: 10px; }
+.notification-item.notification-unread { border-color: #d8ddff; background: #fbfbff; box-shadow: inset 3px 0 0 var(--blue); }
+.notification-item.notification-read { opacity: .84; }
+.notification-tone-warning .notification-item-icon { background: #fff0e8; color: #b96f56; }
+.notification-tone-reminder .notification-item-icon { background: #e5f3e7; color: #367b55; }
+.notification-tone-info .notification-item-icon { background: #e9ecff; color: var(--blue); }
+.notification-item-content { min-width: 0; }
+.notification-item-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 7px; }
+.notification-state { border-radius: 999px; padding: 3px 7px; font: 8px var(--mono); letter-spacing: .2px; }
+.notification-state.is-unread { color: var(--blue); background: #e9ecff; }
+.notification-state.is-read { color: #858b99; background: #eeede8; }
+.notification-item-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 13px; margin-top: 9px; }
+.notification-item-actions .text-action { font-size: 9px; }
+.notification-mark-read { border: 0; padding: 3px 0; background: transparent; color: #858b99; font-size: 9px; }
+.notification-mark-read:hover { color: var(--blue); }
+.notification-empty-state { display: grid; justify-items: center; text-align: center; gap: 9px; padding: 26px 18px; border: 1px dashed #deded8; border-radius: 12px; background: #fbfaf6; }
+.notification-empty-state > span { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: #e5f3e7; color: #367b55; }
+.notification-empty-state > strong { font: 700 14px var(--sans-heading); color: var(--ink); }
+.notification-empty-state p { max-width: 340px; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+.notification-empty-state .secondary-button { margin-top: 5px; }
+.notification-disclaimer { display: flex; align-items: flex-start; gap: 8px; padding: 10px 11px; margin: 0 0 13px; border-radius: 8px; background: #f3f2ed; color: #838998; font-size: 9px; line-height: 1.6; }
+.notification-disclaimer svg { flex: 0 0 auto; margin-top: 1px; }
+@media (max-width: 560px) {
+  .notification-modal-toolbar { align-items: flex-start; }
+  .notification-modal-toolbar .text-action { width: 100%; }
+  .notification-item { grid-template-columns: 30px minmax(0, 1fr); gap: 9px; padding: 10px; }
+  .notification-item-icon { width: 29px; height: 29px; }
+  .notification-item-heading { align-items: flex-start; }
+  .notification-item-heading strong { max-width: 100%; line-height: 1.45; }
+}
+

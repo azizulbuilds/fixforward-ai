@@ -75,10 +75,38 @@ def init_db() -> None:
                 updated_at TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS appointment_history (
+                event_id TEXT PRIMARY KEY,
+                case_id TEXT NOT NULL REFERENCES repair_cases(case_id) ON DELETE CASCADE,
+                event_type TEXT NOT NULL
+                    CHECK (event_type IN ('snapshot', 'booked', 'cancelled', 'rescheduled')),
+                slot_id TEXT NOT NULL REFERENCES appointment_slots(slot_id),
+                previous_slot_id TEXT REFERENCES appointment_slots(slot_id),
+                starts_at TEXT NOT NULL,
+                ends_at TEXT NOT NULL,
+                technician_name TEXT NOT NULL,
+                event_at TEXT NOT NULL,
+                notes TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS case_activity (
+                activity_id TEXT PRIMARY KEY,
+                case_id TEXT NOT NULL REFERENCES repair_cases(case_id) ON DELETE CASCADE,
+                event_type TEXT NOT NULL,
+                from_status TEXT,
+                to_status TEXT,
+                notes TEXT NOT NULL DEFAULT '',
+                occurred_at TEXT NOT NULL
+            );
+
             CREATE INDEX IF NOT EXISTS idx_slots_status_time
                 ON appointment_slots(status, starts_at);
             CREATE INDEX IF NOT EXISTS idx_cases_appliance
                 ON repair_cases(appliance_id, created_at);
+            CREATE INDEX IF NOT EXISTS idx_appointment_history_case_time
+                ON appointment_history(case_id, event_at);
+            CREATE INDEX IF NOT EXISTS idx_case_activity_case_time
+                ON case_activity(case_id, occurred_at);
             """
         )
 
@@ -134,4 +162,36 @@ def init_db() -> None:
                    (slot_id, service_type, starts_at, ends_at, technician_name, status)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 slots,
+            )
+
+
+        # Existing databases predate appointment-history logging. Record a clearly
+        # labelled current-state snapshot for any case with a current slot, but do
+        # not manufacture historical booking/cancellation events that were never saved.
+        migration_time = datetime.now().astimezone().replace(microsecond=0).isoformat()
+        cases_to_snapshot = conn.execute(
+            """SELECT c.case_id, c.current_slot_id, s.starts_at, s.ends_at, s.technician_name
+               FROM repair_cases c
+               JOIN appointment_slots s ON s.slot_id = c.current_slot_id
+               WHERE c.current_slot_id IS NOT NULL
+                 AND NOT EXISTS (
+                     SELECT 1 FROM appointment_history h WHERE h.case_id = c.case_id
+                 )"""
+        ).fetchall()
+        for row in cases_to_snapshot:
+            conn.execute(
+                """INSERT INTO appointment_history
+                   (event_id, case_id, event_type, slot_id, previous_slot_id,
+                    starts_at, ends_at, technician_name, event_at, notes)
+                   VALUES (?, ?, 'snapshot', ?, NULL, ?, ?, ?, ?, ?)""",
+                (
+                    f"MIGRATION-SNAPSHOT-{row['case_id']}",
+                    row['case_id'],
+                    row['current_slot_id'],
+                    row['starts_at'],
+                    row['ends_at'],
+                    row['technician_name'],
+                    migration_time,
+                    "Current appointment snapshot created during history migration; this does not prove the original booking time or recover earlier cancellations.",
+                ),
             )

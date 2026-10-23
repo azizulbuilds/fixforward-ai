@@ -4,6 +4,10 @@ from __future__ import annotations
 import logging
 import os
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+
+load_dotenv()
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Query
@@ -12,12 +16,16 @@ from pydantic import BaseModel, Field
 from mcp.server import MCPServer
 
 from fixforward.db import init_db
+from fixforward.agent import chat_with_agent, get_agent_status
 from fixforward.service import (
     book_repair_appointment,
     create_repair_case,
     get_appliance_details,
     get_available_appointment_slots,
+    get_appointment_history,
     get_repair_case,
+    get_repair_case_activity,
+    update_repair_case_status,
     get_warranty_status,
     list_appliances,
     reschedule_repair_appointment,
@@ -89,6 +97,12 @@ def get_case_status(case_id: str) -> dict[str, Any]:
 
 
 @mcp.tool()
+def get_appointment_history_for_case(case_id: str) -> dict[str, Any]:
+    """Read the saved appointment and cancellation event history for a repair case; does not modify records."""
+    return get_appointment_history(case_id)
+
+
+@mcp.tool()
 def book_appointment(case_id: str, slot_id: str, user_confirmed: bool = False) -> dict[str, Any]:
     """Book a demo appointment only after explicit user approval; pass user_confirmed=true only after approval."""
     return book_repair_appointment(case_id, slot_id, user_confirmed=user_confirmed)
@@ -115,6 +129,23 @@ class CreateCaseRequest(BaseModel):
 class BookingRequest(BaseModel):
     slot_id: str = Field(min_length=1, max_length=40)
     user_confirmed: bool = False
+
+
+class CaseStatusRequest(BaseModel):
+    status: str = Field(pattern="^(resolved|closed)$")
+    notes: str = Field(default="", max_length=500)
+
+
+class ChatHistoryMessage(BaseModel):
+    role: str = Field(pattern="^(user|assistant)$")
+    text: str = Field(min_length=1, max_length=2000)
+
+
+class AssistantChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+    history: list[ChatHistoryMessage] = Field(default_factory=list, max_length=12)
+    appliance_id: str = Field(default="APL-1001", max_length=40)
+    case_id: str | None = Field(default=None, max_length=40)
 
 
 @asynccontextmanager
@@ -154,7 +185,20 @@ def health() -> dict[str, Any]:
         "mcp_endpoint": "/mcp/",
         "demo_data": True,
         "notice": "Appliance, warranty, technician, and appointment information is simulated.",
+        "agent": get_agent_status(),
     }
+
+
+@app.post("/api/assistant/chat")
+def api_assistant_chat(request: AssistantChatRequest) -> dict[str, Any]:
+    """Conversational repair assistant. Uses Bedrock tool calling when configured, local fallback otherwise."""
+    result = chat_with_agent(
+        message=request.message,
+        history=[item.model_dump() for item in request.history],
+        appliance_id=request.appliance_id,
+        case_id=request.case_id,
+    )
+    return result
 
 
 @app.get("/api/appliances")
@@ -211,6 +255,34 @@ def api_create_case(request: CreateCaseRequest) -> dict[str, Any]:
 @app.get("/api/cases/{case_id}")
 def api_get_case(case_id: str) -> dict[str, Any]:
     result = get_repair_case(case_id)
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@app.get("/api/cases/{case_id}/activity")
+def api_get_case_activity(case_id: str) -> dict[str, Any]:
+    """Read persisted lifecycle activity for a repair case."""
+    result = get_repair_case_activity(case_id)
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@app.post("/api/cases/{case_id}/status")
+def api_update_case_status(case_id: str, request: CaseStatusRequest) -> dict[str, Any]:
+    """Resolve an active repair case or close a resolved case."""
+    result = update_repair_case_status(case_id, request.status, request.notes)
+    if not result.get("ok"):
+        status_code = 404 if "was not found" in result.get("error", "") else 409
+        raise HTTPException(status_code=status_code, detail=result["error"])
+    return result
+
+
+@app.get("/api/cases/{case_id}/history")
+def api_get_case_appointment_history(case_id: str) -> dict[str, Any]:
+    """Read-only saved appointment history for a repair case."""
+    result = get_appointment_history(case_id)
     if not result.get("ok"):
         raise HTTPException(status_code=404, detail=result["error"])
     return result

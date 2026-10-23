@@ -9,6 +9,7 @@ from fixforward.service import (
     book_repair_appointment,
     create_repair_case,
     get_available_appointment_slots,
+    get_appointment_history,
     get_appliance_details,
     get_repair_case,
     list_appliances,
@@ -78,6 +79,30 @@ class FixForwardServiceTests(unittest.TestCase):
         rescheduled = reschedule_repair_appointment(created["case_id"], alternate["slot_id"], user_confirmed=True)
         self.assertEqual(rescheduled["status"], "scheduled")
         self.assertEqual(get_repair_case(created["case_id"])["case"]["current_slot_id"], alternate["slot_id"])
+
+        history = get_appointment_history(created["case_id"])
+        self.assertTrue(history["ok"])
+        self.assertEqual([event["event_type"] for event in history["history"]], ["booked", "cancelled", "rescheduled"])
+        self.assertEqual(history["history"][0]["slot_id"], first_slot["slot_id"])
+        self.assertEqual(history["history"][1]["slot_id"], first_slot["slot_id"])
+        self.assertEqual(history["history"][2]["slot_id"], alternate["slot_id"])
+        self.assertEqual(history["history"][2]["previous_slot_id"], first_slot["slot_id"])
+        self.assertTrue(history["historical_events_complete"])
+
+    def test_existing_scheduled_case_gets_truthful_snapshot_during_migration(self):
+        created = create_repair_case("APL-1001", "Washer shakes loudly during spin")
+        slot = get_available_appointment_slots()["slots"][0]
+        booked = book_repair_appointment(created["case_id"], slot["slot_id"], user_confirmed=True)
+        self.assertTrue(booked["ok"])
+        # Simulate an old database where the history table exists but has no event records.
+        with connect() as conn:
+            conn.execute("DELETE FROM appointment_history WHERE case_id = ?", (created["case_id"],))
+        init_db()
+        history = get_appointment_history(created["case_id"])
+        self.assertEqual(len(history["history"]), 1)
+        self.assertEqual(history["history"][0]["event_type"], "snapshot")
+        self.assertFalse(history["historical_events_complete"])
+        self.assertIn("cannot be reliably reconstructed", history["history_note"])
 
 
 if __name__ == "__main__":
